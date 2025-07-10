@@ -1,75 +1,159 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ProjectCard } from '@/components/todo/ProjectCard';
+import { AddItemModal } from '@/components/ui/AddItemModal';
+import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
+import { GradientView } from '@/components/ui/GradientView';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
+import { useApp } from '@/context/AppContext';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, FlatList, StyleSheet, View } from 'react-native';
 
-export default function HomeScreen() {
+export default function ProjectsScreen() {
+  const { state, addProject, deleteProject } = useApp();
+  const [showAddModal, setShowAddModal] = useState(false);
+  
+  const background = useThemeColor({}, 'background');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  
+  // Safely get tab bar height
+  const getTabBarHeight = () => {
+    try {
+      return useBottomTabOverflow();
+    } catch (error) {
+      return 80; // Default tab bar height
+    }
+  };
+  
+  const tabBarHeight = getTabBarHeight();
+  
+  if (state.loading) {
+    return <LoadingScreen message="Loading projects..." />;
+  }
+  
+  const handleProjectPress = (projectId: string) => {
+    router.push(`/project/${projectId}` as any);
+  };
+  
+  const handleProjectLongPress = (projectId: string, projectTitle: string) => {
+    Alert.alert(
+      'Delete Project',
+      `Are you sure you want to delete "${projectTitle}"? This will also delete all tasks in this project.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteProject(projectId),
+        },
+      ]
+    );
+  };
+  
+  const handleAddProject = (title: string, description?: string, priority?: 'low' | 'medium' | 'high') => {
+    addProject(title, description, priority);
+  };
+  
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <ThemedText type="title" style={styles.emptyTitle}>
+        No Projects Yet
+      </ThemedText>
+      <ThemedText style={[styles.emptyText, { color: textSecondary }]}>
+        Create your first project to get started with organizing your tasks!
+      </ThemedText>
+    </View>
+  );
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
+    <GradientView
+      style={[styles.container, { backgroundColor: background }]}
+      lightColors={['#f8fafc', '#ffffff']}
+      darkColors={['#1a202c', '#2d3748']}
+    >
+      <ThemedView style={styles.header}>
+        <ThemedText type="title" style={styles.title}>
+          My Projects
+        </ThemedText>
+        <ThemedText style={[styles.subtitle, { color: textSecondary }]}>
+          {state.projects.length} {state.projects.length === 1 ? 'project' : 'projects'}
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      
+      <FlatList
+        data={state.projects}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ProjectCard
+            project={item}
+            onPress={() => handleProjectPress(item.id)}
+            onLongPress={() => handleProjectLongPress(item.id, item.title)}
+          />
+        )}
+        contentContainerStyle={[
+          styles.listContainer,
+          { paddingBottom: Math.max(120, tabBarHeight + 100) }, // Account for FAB and tab bar
+          state.projects.length === 0 && styles.emptyListContainer,
+        ]}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={renderEmptyState}
+      />
+      
+      <FloatingActionButton
+        onPress={() => setShowAddModal(true)}
+        icon="add"
+      />
+      
+      <AddItemModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddProject}
+        type="project"
+      />
+    </GradientView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+  },
+  listContainer: {
+    // paddingBottom will be set dynamically
+  },
+  emptyListContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  emptyContainer: {
     alignItems: 'center',
-    gap: 8,
+    paddingHorizontal: 40,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  emptyTitle: {
+    fontSize: 24,
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
