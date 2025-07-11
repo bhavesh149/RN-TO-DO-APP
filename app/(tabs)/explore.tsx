@@ -72,7 +72,7 @@ export default function AnalyticsScreen() {
   };
   
   const handleOpenGitHub = () => {
-    Linking.openURL('https://github.com/yourusername/rn-atlas');
+    Linking.openURL('https://github.com/bhavesh149/RN-TO-DO-APP');
   };
   
   const StatCard = ({ 
@@ -312,7 +312,7 @@ export default function AnalyticsScreen() {
         
         <View style={styles.footer}>
           <ThemedText style={[styles.footerText, { color: textSecondary }]}>
-            Made with ❤️ for productivity enthusiasts
+            Made with ❤️ by Bhavesh Mahajan
           </ThemedText>
         </View>
       </ScrollView>

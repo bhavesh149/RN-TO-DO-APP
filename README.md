@@ -25,7 +25,7 @@ A modern, professional React Native to-do application built with Expo and TypeSc
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/rn-atlas.git
+   git clone https://github.com/bhavesh149/RN-TO-DO-APP.git
    cd rn-atlas
    ```
 
@@ -58,21 +58,6 @@ A modern, professional React Native to-do application built with Expo and TypeSc
 - **GradientView**: Reusable gradient wrapper component
 - **FloatingActionButton**: Animated FAB for adding items
 - **AddItemModal**: Modal for creating new projects and tasks
-
-## 🎨 Design System
-
-### Color Scheme
-
-- **Primary Gradient**: `#667eea` → `#764ba2`
-- **Success Gradient**: `#4facfe` → `#00f2fe`
-- **Card Gradient**: `#f093fb` → `#f5576c`
-
-### Typography
-
-- **Title**: 32px bold
-- **Subtitle**: 20px bold
-- **Body**: 16px regular
-- **Caption**: 12px regular
 
 ## 🏗️ Architecture
 
